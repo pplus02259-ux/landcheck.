@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#075f3d">
+  <meta name="description" content="LandCheck ระบบตรวจสอบข้อมูลที่ดินดิจิทัล">
+  <title>LandCheck | ระบบตรวจสอบข้อมูลที่ดินดิจิทัล</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIINfQ3q6cW9F0a1Q6f1QJf2fVbXvYp4qY0="
+        crossorigin="">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="LandCheck หน้าหลัก">
+      <div class="brand-logo"><img src="logo.png" alt="ตราสัญลักษณ์"></div>
+      <div>
+        <div class="brand-name">LandCheck</div>
+        <div class="brand-sub">ระบบตรวจสอบข้อมูลที่ดินดิจิทัล</div>
+        <div class="brand-mini">ค้นหาข้อมูลที่ดินได้ง่าย ผ่านแผนที่จริง พร้อมข้อมูลที่เชื่อถือได้</div>
+      </div>
+    </a>
+
+    <nav class="main-nav">
+      <a href="#home">⌂ <span>หน้าแรก</span></a>
+      <a class="active" href="#map-section">▣ <span>แผนที่</span></a>
+      <a href="#search">⌕ <span>ค้นหาแปลง</span></a>
+      <a href="#guide">▤ <span>วิธีใช้งาน</span></a>
+      <a href="#about">ⓘ <span>เกี่ยวกับเรา</span></a>
+    </nav>
+
+    <button class="login-btn" id="loginBtn">● &nbsp; เข้าสู่ระบบ</button>
+  </header>
+
+  <main id="top">
+    <section class="search-wrap" id="search">
+      <div class="search-tabs">
+        <button class="tab active" data-mode="parcel">▣ &nbsp; ค้นหาเลขโฉนด</button>
+        <button class="tab" data-mode="coord">⌾ &nbsp; ค้นหาพิกัด</button>
+        <button class="tab" data-mode="place">● &nbsp; ค้นหาสถานที่</button>
+      </div>
+
+      <div class="search-grid" id="parcelSearch">
+        <label>จังหวัด
+          <select id="province">
+            <option>เชียงราย</option>
+            <option>พะเยา</option>
+            <option>เชียงใหม่</option>
+            <option>ลำปาง</option>
+          </select>
+        </label>
+        <label>อำเภอ
+          <select id="district">
+            <option>เมืองเชียงราย</option>
+            <option>แม่จัน</option>
+            <option>พาน</option>
+            <option>แม่สาย</option>
+          </select>
+        </label>
+        <label>ตำบล
+          <select id="subdistrict">
+            <option>สันทราย</option>
+            <option>ริมกก</option>
+            <option>ท่าสุด</option>
+            <option>บ้านดู่</option>
+          </select>
+        </label>
+        <label>เลขโฉนด
+          <input id="parcelInput" inputmode="numeric" placeholder="เช่น 10001" value="10001">
+        </label>
+        <button class="search-btn" id="searchBtn">⌕ &nbsp; ค้นหา</button>
+      </div>
+
+      <div class="search-grid hidden" id="coordSearch">
+        <label>ละติจูด<input id="latInput" value="19.9156"></label>
+        <label>ลองจิจูด<input id="lngInput" value="99.8372"></label>
+        <button class="search-btn" id="coordBtn">⌕ &nbsp; ไปยังพิกัด</button>
+      </div>
+
+      <div class="search-grid hidden" id="placeSearch">
+        <label class="wide">สถานที่<input id="placeInput" placeholder="เช่น มหาวิทยาลัยพะเยา / ถนนพหลโยธิน"></label>
+        <button class="search-btn" id="placeBtn">⌕ &nbsp; ค้นหาสถานที่</button>
+      </div>
+    </section>
+
+    <section class="dashboard" id="map-section">
+      <aside class="panel parcel-panel">
+        <div class="panel-title">
+          <span>▣</span>
+          <h2>ข้อมูลแปลงที่ดิน</h2>
+          <button class="outline-btn" id="landsMapsBtn">ดูใน LandsMaps ↗</button>
+        </div>
+
+        <div class="parcel-number">
+          <span>เลขโฉนดที่ดิน</span>
+          <strong id="parcelNo">10001</strong>
+          <button class="copy-btn" id="copyParcel" title="คัดลอก">□</button>
+        </div>
+
+        <div class="info-list">
+          <div><span>📍 จังหวัด</span><b id="infoProvince">เชียงราย</b></div>
+          <div><span>📍 อำเภอ</span><b id="infoDistrict">เมืองเชียงราย</b></div>
+          <div><span>⌂ ตำบล</span><b id="infoSubdistrict">สันทราย</b></div>
+          <div><span>▤ ประเภทที่ดิน</span><b>โฉนดที่ดิน (น.ส.4)</b></div>
+          <div><span>◈ เนื้อที่</span><b id="infoArea">12 ไร่ 2 งาน 45.0 ตร.ว.</b></div>
+          <div><span>⌾ พิกัดแปลง</span><b id="infoCoords">19.9156, 99.8372</b></div>
+          <div class="office"><span>สำนักงานที่ดินที่รับผิดชอบ</span><b>สำนักงานที่ดินจังหวัดเชียงราย</b><small>โทร. 053 712 234</small></div>
+        </div>
+
+        <div class="notice">
+          <strong>ⓘ &nbsp;ข้อควรทราบ</strong>
+          <p>ข้อมูลแปลงในต้นแบบนี้เป็นข้อมูลจำลองเพื่อการเรียนรู้ ควรตรวจสอบข้อมูลกับหน่วยงานที่เกี่ยวข้องก่อนนำไปใช้งานทางกฎหมาย</p>
+        </div>
+      </aside>
+
+      <section class="map-card">
+        <div class="map-head">
+          <div>
+            <h2>แผนที่แปลงที่ดิน</h2>
+            <span>แผนที่จริงจาก OpenStreetMap • ต้นแบบข้อมูลแปลง</span>
+          </div>
+          <div class="map-switch">
+            <button class="map-type active" data-layer="street">แผนที่</button>
+            <button class="map-type" data-layer="satellite">ดาวเทียม</button>
+          </div>
+        </div>
+        <div id="map"></div>
+        <div class="map-footer">
+          <span id="mapStatus">● พบแปลงเลขโฉนด 10001</span>
+          <span id="coordsBadge">19.9156, 99.8372</span>
+        </div>
+      </section>
+
+      <aside class="panel tools-panel">
+        <div class="panel-title simple"><span>▰</span><h2>ชั้นข้อมูลแผนที่</h2></div>
+
+        <label class="layer-row"><input type="checkbox" checked><span class="fake-check"></span><span>ขอบเขตแปลงที่ดิน</span></label>
+        <label class="layer-row"><input type="checkbox"><span class="fake-check"></span><span>แนวเขตที่ดิน (กรมที่ดิน)</span></label>
+        <label class="layer-row"><input type="checkbox"><span class="fake-check"></span><span>เขตป่าสงวนแห่งชาติ</span></label>
+        <label class="layer-row"><input type="checkbox"><span class="fake-check"></span><span>เขตอุทยานแห่งชาติ</span></label>
+        <label class="layer-row"><input type="checkbox"><span class="fake-check"></span><span>เขต ส.ป.ก.</span></label>
+        <label class="layer-row"><input type="checkbox" checked><span class="fake-check"></span><span>ภาพถ่ายดาวเทียม</span></label>
+
+        <div class="tools-divider"></div>
+        <div class="panel-title simple"><span>⚙</span><h2>เครื่องมือแผนที่</h2></div>
+        <div class="tool-grid">
+          <button class="tool-btn" id="locateBtn">●<span>ตำแหน่งของฉัน</span></button>
+          <button class="tool-btn" id="resetBtn">↻<span>รีเซ็ตแผนที่</span></button>
+          <button class="tool-btn" id="measureBtn">⌁<span>วัดระยะทาง</span></button>
+          <button class="tool-btn" id="drawBtn">▱<span>วาดพื้นที่</span></button>
+        </div>
+
+        <div class="lands-card">
+          <div class="lands-thumb">LAND<br>MAPS</div>
+          <div>
+            <small>ค้นหาข้อมูลเพิ่มเติมที่</small>
+            <strong>LandsMaps กรมที่ดิน</strong>
+            <button id="landsMapsBtn2">เข้าสู่ระบบ LandsMaps ↗</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="stats">
+      <div><strong>04</strong><span>ชั้นข้อมูล</span></div>
+      <div><strong>03</strong><span>แปลงตัวอย่าง</span></div>
+      <div><strong>02</strong><span>วิธีค้นหา</span></div>
+      <div><strong>100%</strong><span>ข้อมูลเพื่อการสาธิต</span></div>
+    </section>
+
+    <section class="guide panel" id="guide">
+      <div class="eyebrow">LANDCHECK GUIDE</div>
+      <h2>ค้นหาแปลงที่ดินใน 3 ขั้นตอน</h2>
+      <div class="steps">
+        <div><b>01</b><h3>กรอกเลขโฉนด</h3><p>เลือกจังหวัด อำเภอ ตำบล และระบุเลขโฉนดที่ต้องการค้นหา</p></div>
+        <div><b>02</b><h3>ดูตำแหน่งบนแผนที่</h3><p>ระบบจะเลื่อนไปยังตำแหน่งตัวอย่าง พร้อมแสดงขอบเขตแปลง</p></div>
+        <div><b>03</b><h3>ตรวจสอบข้อมูล</h3><p>ดูข้อมูลพื้นฐาน พิกัด เนื้อที่ และชั้นข้อมูลประกอบการตรวจสอบ</p></div>
+      </div>
+    </section>
+
+    <section class="about panel" id="about">
+      <div>
+        <div class="eyebrow">ABOUT LANDCHECK</div>
+        <h2>ระบบต้นแบบสำหรับการเรียนรู้<br>Digital Public Service</h2>
+        <p>ออกแบบให้ค้นหาข้อมูลที่ดินได้ง่ายขึ้นผ่านหน้าจอเดียว โดยเน้นประสบการณ์ใช้งานบนมือถือและแท็บเล็ต</p>
+      </div>
+      <div class="about-badge"><img src="logo.png" alt=""><span>Prototype<br>พร้อมพัฒนา</span></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-brand"><img src="logo.png" alt=""> <strong>LandCheck</strong> <span>| ตรวจสอบที่ดิน ตรวจสอบอนาคต</span></div>
+    <span>ข้อมูลตัวอย่างเพื่อการสาธิต • LandCheck Prototype</span>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>
